@@ -11,20 +11,22 @@ const { promise } = require("selenium-webdriver");
 const { ScraperController } = require("./scraperController");
 
 const fs = require("fs");
+const { elementIsDisabled } = require("selenium-webdriver/lib/until");
 
 class Application {
     #scraperController;
+    #analyzer;
     #tickers;
     #baseUrl;
+    
     constructor(url,tickers){
         this.#tickers = tickers;
         this.#baseUrl = url;
         
-        
     }
 
     async init(){
-        this.#scraperController = await new ScraperController(this.#baseUrl,this.#tickers);
+        this.#scraperController = await new ScraperController(this.#baseUrl,this.#tickers,1);
         await this.#scraperController.init();
     }
 
@@ -34,14 +36,41 @@ class Application {
         }
         let results = await this.#scraperController.runScrapers();
         
+        console.log("RESULTS");
+        console.log(results);
 
-        // ----------------------------------------------------
+        /*
+        let validResults = results.filter(element => {
+            if(element[0] === 0){
+                return element;
+            }
+        });
 
+        console.log("Valid result ");
+        console.log(validResults);
+        */
+
+        let json = await this.convertToJson(results);
+        this.saveData(json);
+        
+
+    }
+
+    convertToJson(results){
+        
+        let entryLenght = 0;
         let jsonResults = results.map(element => {
             let res = Object.fromEntries(element);
-            console.log(res);
+            entryLenght++;
+            //console.log(res);
             return res;
         });
+
+        return [entryLenght,jsonResults];
+    }
+
+    saveData(results){
+        
         
         let dir = "./results/";
         if (!fs.existsSync(dir)) {
@@ -52,13 +81,15 @@ class Application {
         let path = dir + "results.json";
         try {
             // Converte l'intero array di oggetti in una stringa JSON
-            let json = JSON.stringify(jsonResults, null, 2); // Formattato con indentazione
+            let json = JSON.stringify(results, null, 2); // Formattato con indentazione
             fs.writeFileSync(path, json, 'utf8');
         } catch (err) {
             console.error("Errore durante il salvataggio dei dati:", err);
         }
-        
-        
+    }
+
+    evaluateResults(results){
+
     }
 
     start(){
@@ -73,21 +104,39 @@ class Application {
 const baseUrl = "https://finance.yahoo.com/quote/"
 const tickers = [
     "1INTC.MI",
-    "FBK.MI",
-    "RACE.MI",
     "UCG.MI",
     "TIT.MI",
     "ENEL.MI",
-    "UNI.MI"
-    
+    "UNI.MI",
+    "ISP.MI",
+    "RACE.MI",
+    "PYPL",
+    "TSLA",
+    "RGEN",
+    "1NVDA.MI",
+    "FBK.MI",
+    "PIRC.MI",
+    "ENI.MI",
+    "AZM.MI",
+    "STLAM.MI",
+    "MB.MI",
+    "IG.MI",
+    "AMP.MI",
+    "PST.MI",
+    "MHVIY",
+    "ALAB",
+    "VLKAF",
+    "ARM",
+    "MU",
+    "ASML",
+    "CRWD",
+    "TSM",
+    "RDDT"
 ];
 
-/* 
-"INTC"
-"1INTC.MI",
-"FBK.MI",
-"RACE.MI"
-*/
+
+
+    
 const timeWait = 60000;
 (async ()=>{
     const myApp = new Application(baseUrl,tickers);
@@ -98,4 +147,5 @@ const timeWait = 60000;
     
     
 })();
+
 

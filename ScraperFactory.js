@@ -20,8 +20,8 @@ class SeleniumScraperFactory extends ScraperFactory {
         super();
     }
 
-    getYahooScraper(url) {
-        return new YahooSeleniumScraper(url);
+    getYahooScraper(url,tickers) {
+        return new YahooSeleniumScraper(url,tickers);
     }
 }
 
