@@ -89,6 +89,10 @@ class YahooSeleniumScraper extends IScraper {
                     this.#removed = true;
                 }
 
+                let companyName = await this.#seleniumChromeDriver.findElement(By.className('yf-3a2v0c'));
+                await this.#seleniumChromeDriver.wait(until.elementIsVisible(companyName),200);
+                let name = await companyName.getText();
+                
                 let priceElement = await this.#seleniumChromeDriver.findElement(By.className('livePrice')); 
                 await this.#seleniumChromeDriver.wait(until.elementIsVisible(priceElement),200);
                 
@@ -103,6 +107,7 @@ class YahooSeleniumScraper extends IScraper {
 
                 let date = new Date();
                 
+                values.set("Company name",name);
                 values.set("date", date.toLocaleDateString());
                 values.set("time", date.toLocaleTimeString());
 
@@ -144,6 +149,7 @@ class YahooSeleniumScraper extends IScraper {
     
             } catch (error) {
                 console.error(`Errore ${url} durante l'apertura della pagina: ${error}`);
+                reject(error);
             }
         });
 
@@ -162,6 +168,9 @@ class YahooSeleniumScraper extends IScraper {
             try {
                 let data = await this.openPage(this.#url + ticker);
                 results.push(data);
+
+                console.log(`Ticker ${ticker}, dati scaricati`);
+
             } catch (err) {
                 console.error(`Errore durante l'apertura della pagina per ${ticker}: ${err}`);
             }

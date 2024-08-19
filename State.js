@@ -4,6 +4,6 @@ const scraperState = Object.freeze({
     READY : 2,
     ERROR : 3,
 
-})
+});
 
 module.exports = scraperState;

@@ -1,5 +1,7 @@
 const { ScraperFactory, SeleniumScraperFactory} = require("./ScraperFactory");
-const scraperState = require("./State");
+
+const scraperState = require('./State');
+
 class ScraperController {
     #scrapers
     #factory;
@@ -29,7 +31,6 @@ class ScraperController {
 
         //Dividiamo i tickers in base ai thread
         let tickersForThread = Math.ceil(this.#tickers.length / this.#numThread);
-        console.log("Lunghezza : ", tickersForThread);
         let tickersThread = [];
         let allTickers = [];
         
@@ -37,7 +38,6 @@ class ScraperController {
        
         for(let index = 0;index<this.#tickers.length;index++){
             let ticker = this.#tickers[index];
-            console.log("Ticker : ",ticker);
             tickersThread.push(ticker);
             if(count === tickersForThread){
                 allTickers.push(tickersThread);
@@ -52,9 +52,6 @@ class ScraperController {
         if(tickersThread.length != 0){
             allTickers.push(tickersThread);
         }
-        
-        console.log(`All Tickers : `,allTickers);
-        
         
         //Creazione degli scrapers
         allTickers.map(tickers => {
