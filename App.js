@@ -14,7 +14,15 @@ const fs = require("fs");
 const { elementIsDisabled } = require("selenium-webdriver/lib/until");
 const { SimpleAnalyzer } = require("./SimpleAnalyzer");
 
-
+/**
+ * TODO : 
+ * inserire criteri di ordinamento nella tabella 
+ * - ordinamento per nome
+ * - ordinamento per prezzo
+ * - ordinamento ascendente / discentente
+ * 
+ * 
+ */
 
 class Application {
     #scraperController;
@@ -49,12 +57,13 @@ class Application {
 
     async startScrapers(){
         
-
+        //Controllo che l'applicazione non stia ancora scaricando i dati
         if (this.#isScraping) {
             console.log("Scraping in corso, attendo il completamento...");
             return;
         }
 
+        //Ogni volta occorre reinizializzare i vari scrapers
         await this.init();
         if (!this.#scraperController) {
             throw new Error("ScraperController non è stato inizializzato. Chiamare init() prima di startScrapers().");
@@ -66,14 +75,19 @@ class Application {
             let startTime = new Date();
             let results = await this.#scraperController.runScrapers();
             let endTime = new Date();
-
             let execTime = endTime - startTime;
             console.log("Tempo di esecuzione : " , execTime);
 
-
-            let [entryLenght,objResults] = await this.convertToObjectFormat(results);
+            //console.log("RESULTS");
+            //console.log(results);
+            
+            let [objResults,jsonResults] = await this.convert(results);
             this.evaluateResults(objResults);
-            this.saveData([entryLenght,objResults]);
+            this.saveData(jsonResults);
+
+            /** TODO : inserire le valutazioni nei dati e inviare tutto al frontend mediante una Websocket */
+
+
         }
         catch(error) {
             console.error("Errore durante lo scraping:", error);
@@ -84,20 +98,19 @@ class Application {
 
     }
 
-    convertToObjectFormat(results){
+    convert(results){
         
-        let entryLenght = 0;
         let objResults = results.map(element => {
             let res = Object.fromEntries(element);
-            entryLenght++;
-            //console.log(res);
             return res;
         });
 
-        return [entryLenght,objResults];
+        let json = JSON.stringify(objResults, null, 2); // Formattato con indentazione
+
+        return [objResults,json];
     }
 
-    saveData(results){
+    saveData(resultsInJson){
         
         
         let dir = "./results/";
@@ -109,8 +122,8 @@ class Application {
         let path = dir + "results.json";
         try {
             // Converte l'intero array di oggetti in una stringa JSON
-            let json = JSON.stringify(results, null, 2); // Formattato con indentazione
-            fs.writeFileSync(path, json, 'utf8');
+            
+            fs.writeFileSync(path, resultsInJson, 'utf8');
         } catch (err) {
             console.error("Errore durante il salvataggio dei dati:", err);
         }
@@ -141,19 +154,24 @@ const tickers = [
     "1NVDA.MI", "FBK.MI", "PIRC.MI", "ENI.MI", "AZM.MI", "STLAM.MI", "MB.MI", "IG.MI", "AMP.MI", "PST.MI",
     "MHVIY", "ALAB", "VLKAF", "ARM", "MU", "ASML", "CRWD", "TSM", "RDDT", "ASTS",
     
-    "1INTC.MI", "UCG.MI", "TIT.MI", "ENEL.MI", "UNI.MI", "ISP.MI", "RACE.MI", "PYPL", "TSLA", "RGEN", 
+    
+];
+
+/* 
+
+"1INTC.MI", "UCG.MI", "TIT.MI", "ENEL.MI", "UNI.MI", "ISP.MI", "RACE.MI", "PYPL", "TSLA", "RGEN", 
     "1NVDA.MI", "FBK.MI", "PIRC.MI", "ENI.MI", "AZM.MI", "STLAM.MI", "MB.MI", "IG.MI", "AMP.MI", "PST.MI",
     "MHVIY", "ALAB", "VLKAF", "ARM", "MU", "ASML", "CRWD", "TSM", "RDDT", "ASTS",
     
     "1INTC.MI", "UCG.MI", "TIT.MI", "ENEL.MI", "UNI.MI", "ISP.MI", "RACE.MI", "PYPL", "TSLA", "RGEN", 
     "1NVDA.MI", "FBK.MI", "PIRC.MI", "ENI.MI", "AZM.MI", "STLAM.MI", "MB.MI", "IG.MI", "AMP.MI", "PST.MI",
     "MHVIY", "ALAB", "VLKAF", "ARM", "MU", "ASML", "CRWD", "TSM", "RDDT", "ASTS"
-];
+*/
 
 
 const debugTicker = [ "1INTC.MI" ];
 const timeWait = 60000;
-const numThread = 6;
+const numThread = 3;
 
 (async ()=>{
     const myApp = new Application(baseUrl,tickers);

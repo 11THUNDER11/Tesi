@@ -1,3 +1,7 @@
+// Intestazioni delle colonne
+export const columns = ['Company name', 'date', 'ticker', 'price'];
+
+export const data = 
 [
   {
     "Company name": "Intel Corporation (1INTC.MI)",
