@@ -1,18 +1,14 @@
-/*
-    let factory = new ScraperFactory();
-let seleniumFactory = factory.getFactory(0);
-
-let scraper = seleniumFactory.getYahooScraper("https://finance.yahoo.com/quote/INTC");
-
-console.log(scraper.getInfo());
-*/
-
 const { promise } = require("selenium-webdriver");
 const { ScraperController } = require("./scraperController");
 
 const fs = require("fs");
 const { elementIsDisabled } = require("selenium-webdriver/lib/until");
 const { SimpleAnalyzer } = require("./SimpleAnalyzer");
+
+const WebSocket = require('ws');
+const http = require('http');
+const rating = require("./Rating");
+
 
 /**
  * TODO : 
@@ -33,6 +29,7 @@ class Application {
     #isScraping;
     #numThead;
     
+    
     constructor(url,tickers){
         this.#tickers = tickers;
         this.#baseUrl = url;
@@ -42,9 +39,12 @@ class Application {
 
         this.#numThead = 1;
         
+        
+        
     }
 
     async init(){
+        
         this.#scraperController = await new ScraperController(this.#baseUrl,this.#tickers,this.#numThead);
         await this.#scraperController.init();
     }
@@ -78,15 +78,28 @@ class Application {
             let execTime = endTime - startTime;
             console.log("Tempo di esecuzione : " , execTime);
 
-            //console.log("RESULTS");
-            //console.log(results);
+            let objResults = await this.convert(results);
+            let ratings = await this.evaluateResults(objResults);
             
-            let [objResults,jsonResults] = await this.convert(results);
-            this.evaluateResults(objResults);
-            this.saveData(jsonResults);
+            console.log("objects : ");
+            console.log(objResults);
+            
+            console.log("RATING : ");
+            console.log(ratings);
 
-            /** TODO : inserire le valutazioni nei dati e inviare tutto al frontend mediante una Websocket */
+            let mergedData = await objResults.map(obj =>{
+                const res = ratings.find(rating => rating.ticker === obj.ticker);
+                if(res){
+                    return {...obj,...res};
+                }
+            })
 
+            console.log("merge");
+            console.log(mergedData);
+            
+            let json = JSON.stringify(mergedData, null, 2); // Formattato con indentazione
+            this.saveData(json);
+            this.broadcastToWebSocketClients({type : 'results', data : mergedData});
 
         }
         catch(error) {
@@ -105,9 +118,7 @@ class Application {
             return res;
         });
 
-        let json = JSON.stringify(objResults, null, 2); // Formattato con indentazione
-
-        return [objResults,json];
+        return objResults;
     }
 
     saveData(resultsInJson){
@@ -129,14 +140,20 @@ class Application {
         }
     }
 
+    broadcastToWebSocketClients(message){
+        wss.clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify(message));
+            }
+        });
+    }
 
-    //TODO
+
+    //Valutazione dei risultati
     evaluateResults(results){
         let ratings = this.#analyzer.evaluate(results); 
-        console.log("---------------RATINGS--------------------");
-        console.log(ratings);        
-        console.log("---------------END RATINGS--------------------");
-
+        
+       return ratings;
     }
 
     async start(){
@@ -148,33 +165,45 @@ class Application {
     }
 }
 
+
+//--------------------------------------------------------------------------
+// Configura il server WebSocket e HTTP
+const server = http.createServer();
+const wss = new WebSocket.Server({ server });
+
+wss.on('connection', (ws) => {
+    console.log('Nuovo client connesso');
+
+    ws.on('message', (message) => {
+        console.log('Messaggio dal client:', message);
+    });
+
+    ws.on('close', () => {
+        console.log('Client disconnesso');
+    });
+});
+
+const PORT = 5000;
+server.listen(PORT, () => {
+    console.log(`Server in ascolto su ws://localhost:${PORT}`);
+});
+
 const baseUrl = "https://finance.yahoo.com/quote/"
 const tickers = [
     "1INTC.MI", "UCG.MI", "TIT.MI", "ENEL.MI", "UNI.MI", "ISP.MI", "RACE.MI", "PYPL", "TSLA", "RGEN", 
     "1NVDA.MI", "FBK.MI", "PIRC.MI", "ENI.MI", "AZM.MI", "STLAM.MI", "MB.MI", "IG.MI", "AMP.MI", "PST.MI",
     "MHVIY", "ALAB", "VLKAF", "ARM", "MU", "ASML", "CRWD", "TSM", "RDDT", "ASTS",
     
-    
 ];
-
-/* 
-
-"1INTC.MI", "UCG.MI", "TIT.MI", "ENEL.MI", "UNI.MI", "ISP.MI", "RACE.MI", "PYPL", "TSLA", "RGEN", 
-    "1NVDA.MI", "FBK.MI", "PIRC.MI", "ENI.MI", "AZM.MI", "STLAM.MI", "MB.MI", "IG.MI", "AMP.MI", "PST.MI",
-    "MHVIY", "ALAB", "VLKAF", "ARM", "MU", "ASML", "CRWD", "TSM", "RDDT", "ASTS",
-    
-    "1INTC.MI", "UCG.MI", "TIT.MI", "ENEL.MI", "UNI.MI", "ISP.MI", "RACE.MI", "PYPL", "TSLA", "RGEN", 
-    "1NVDA.MI", "FBK.MI", "PIRC.MI", "ENI.MI", "AZM.MI", "STLAM.MI", "MB.MI", "IG.MI", "AMP.MI", "PST.MI",
-    "MHVIY", "ALAB", "VLKAF", "ARM", "MU", "ASML", "CRWD", "TSM", "RDDT", "ASTS"
-*/
-
 
 const debugTicker = [ "1INTC.MI" ];
 const timeWait = 60000;
 const numThread = 3;
 
+
+
 (async ()=>{
-    const myApp = new Application(baseUrl,tickers);
+    const myApp = new Application(baseUrl,debugTicker);
     myApp.setThreadNum(numThread);
     //await myApp.startScrapers();
     await myApp.start();
