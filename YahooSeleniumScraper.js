@@ -55,7 +55,7 @@ class YahooSeleniumScraper extends IScraper {
             
             //Impostiamo le varie opzioni 
             options.addArguments("--disable-search-engine-choice-screen");
-            //options.addArguments("--headless=new");
+            options.addArguments("--headless=new");
             options.addArguments('--log-level=2');
             options.addArguments('--ignore-certificate-errors');
             options.addArguments('--ignore-ssl-errors');

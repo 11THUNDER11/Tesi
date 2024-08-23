@@ -21,6 +21,9 @@ function App() {
   const [data, setData] = useState([]);  // Dati dinamici
   const [connected, setConnected] = useState(false); // Stato per tracciare la connessione WebSocket
   
+  const [darkMode, setDarkMode] = useState(false); // Stato per la modalità scura
+
+
   useEffect(() => {
     const socket = new WebSocket('ws://localhost:5000');
 
@@ -45,20 +48,31 @@ function App() {
     return () => socket.close(); // Chiude la connessione WebSocket quando il componente si smonta
   }, []);
 
+  // Funzione per alternare la modalità scura
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
 
   if(data.length === 0){
     return (
-      <div className="App">
+      <div className={`App ${darkMode ? 'dark-mode' : ''}`}>
         <div className="loading-message">
           <div className="spinner"></div>
           <h2>In attesa di dati...</h2>
         </div>
+        <button className="dark-mode-toggle" onClick={toggleDarkMode}>
+          {darkMode ? 'Modalità Chiara' : 'Modalità Scura'}
+        </button>
       </div>
     );
   }
 
+
   return (
-    <div className="App">
+    <div className={`App ${darkMode ? 'dark-mode' : ''}`}>
+      <button className="dark-mode-toggle" onClick={toggleDarkMode}>
+          {darkMode ? 'Modalità Chiara' : 'Modalità Scura'}
+        </button>
       <Table columns={columns} data={data} />
     </div>
   );

@@ -1,10 +1,10 @@
 import React from 'react';
 import TableCell from './TableCell';
 
-function TableRow({columns,item}){
+function TableRow({columns,item,onClick}){
     
     return (
-        <tr>
+        <tr onClick={onClick} style={{ cursor: 'pointer' }}>
             {
                 columns.map((column , index )=>{
                     //const key = column.toLowerCase();

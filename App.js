@@ -7,18 +7,6 @@ const { SimpleAnalyzer } = require("./SimpleAnalyzer");
 
 const WebSocket = require('ws');
 const http = require('http');
-const rating = require("./Rating");
-
-
-/**
- * TODO : 
- * inserire criteri di ordinamento nella tabella 
- * - ordinamento per nome
- * - ordinamento per prezzo
- * - ordinamento ascendente / discentente
- * 
- * 
- */
 
 class Application {
     #scraperController;
@@ -81,11 +69,11 @@ class Application {
             let objResults = await this.convert(results);
             let ratings = await this.evaluateResults(objResults);
             
-            console.log("objects : ");
-            console.log(objResults);
+            //console.log("objects : ");
+            //console.log(objResults);
             
-            console.log("RATING : ");
-            console.log(ratings);
+            //console.log("RATING : ");
+            //console.log(ratings);
 
             let mergedData = await objResults.map(obj =>{
                 const res = ratings.find(rating => rating.ticker === obj.ticker);
@@ -94,8 +82,8 @@ class Application {
                 }
             })
 
-            console.log("merge");
-            console.log(mergedData);
+            //console.log("merge");
+            //console.log(mergedData);
             
             let json = JSON.stringify(mergedData, null, 2); // Formattato con indentazione
             this.saveData(json);
@@ -203,7 +191,7 @@ const numThread = 3;
 
 
 (async ()=>{
-    const myApp = new Application(baseUrl,debugTicker);
+    const myApp = new Application(baseUrl,tickers);
     myApp.setThreadNum(numThread);
     //await myApp.startScrapers();
     await myApp.start();
