@@ -33,6 +33,8 @@ class ScraperController {
         let tickersForThread = Math.ceil(this.#tickers.length / this.#numThread);
         let tickersThread = [];
         let allTickers = [];
+
+        this.#scrapers = [];
         
         let count = 1;
        

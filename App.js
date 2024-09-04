@@ -24,6 +24,7 @@ class Application {
         this.#analyzer = new SimpleAnalyzer();
 
         this.#isScraping = false;
+        this.#scraperController = null;
 
         this.#numThead = 1;
         
@@ -32,8 +33,8 @@ class Application {
     }
 
     async init(){
-        
-        this.#scraperController = await new ScraperController(this.#baseUrl,this.#tickers,this.#numThead);
+        if(this.#scraperController === null)
+            this.#scraperController = await new ScraperController(this.#baseUrl,this.#tickers,this.#numThead);
         await this.#scraperController.init();
     }
 

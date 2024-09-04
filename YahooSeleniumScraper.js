@@ -72,36 +72,28 @@ class YahooSeleniumScraper extends IScraper {
     
     // Metodo per aprire la pagina web
     async openPage(url) {
-
         return new Promise(async (resolve,reject) => {
             try {
-
-                //console.log(`${url} apro la pagina`);
                 await this.#seleniumChromeDriver.get(url);
-                await this.#seleniumChromeDriver.manage().setTimeouts({implicit: 5000});
+                await this.#seleniumChromeDriver.manage().setTimeouts({implicit: 1000});
                 //Rimozione banner cookie 
-                
                 if(!this.#removed){
                     let rejectCookieElement = await this.#seleniumChromeDriver.findElement(By.name('reject'))
-                    await this.#seleniumChromeDriver.wait(until.elementIsVisible(rejectCookieElement),1000);
                     await rejectCookieElement.click();
-                    
                     this.#removed = true;
                 }
 
                 let companyName = await this.#seleniumChromeDriver.findElement(By.className('yf-3a2v0c'));
-                await this.#seleniumChromeDriver.wait(until.elementIsVisible(companyName),200);
                 let name = await companyName.getText();
                 
                 let priceElement = await this.#seleniumChromeDriver.findElement(By.className('livePrice')); 
-                await this.#seleniumChromeDriver.wait(until.elementIsVisible(priceElement),200);
                 
                 let priceValue = await priceElement.getText();  // Ottiene il testo dell'elemento
                 
                 let stockIndicatorsElement = await this.#seleniumChromeDriver.findElement(By.className('yf-tx3nkj')); 
                 let rawValues = await stockIndicatorsElement.getText();
                 
-
+                //Parsing del testo contenente i dati
                 let lines = rawValues.split('\n');
                 let values = new Map();
 
@@ -168,7 +160,6 @@ class YahooSeleniumScraper extends IScraper {
             try {
                 let data = await this.openPage(this.#url + ticker);
                 results.push(data);
-
                 console.log(`Ticker ${ticker}, dati scaricati`);
 
             } catch (err) {
