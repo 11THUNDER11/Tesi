@@ -1,6 +1,6 @@
 # QuantScraper 📈
 
-This project represents the practical implementation of my final thesis. It explores the efficiency of different headless browser engines (Puppeteer vs. Playwright vs. Selenium) in the context of high-frequency financial data extraction.
+This project is the result of my Bachelor's thesis at UniBo, where I wanted to bring my IT background into the world of finance. I used it to build a bridge between web automation and data-driven trading signals.
 
 📂 *[Read the full paper here](./TesiTriennaleCatellaniAlberto.pdf)*
 
