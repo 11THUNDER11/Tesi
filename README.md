@@ -2,7 +2,7 @@
 
 This project represents the practical implementation of my final thesis. It explores the efficiency of different headless browser engines (Puppeteer vs. Playwright vs. Selenium) in the context of high-frequency financial data extraction.
 
-📂 *[Read the full paper here](./Thesis.pdf)*
+📂 *[Read the full paper here](./TesiTriennaleCatellaniAlberto.pdf)*
 
 ![Node.js](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
 ![Selenium](https://img.shields.io/badge/Selenium-43B02A?style=for-the-badge&logo=Selenium&logoColor=white)
